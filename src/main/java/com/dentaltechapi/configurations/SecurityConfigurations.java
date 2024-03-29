@@ -33,6 +33,15 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "api/user/login").permitAll()
 
+                        .requestMatchers(HttpMethod.OPTIONS, "api/user/logout").permitAll()
+                        .requestMatchers(HttpMethod.POST, "api/user/logout").permitAll()
+
+                        .requestMatchers(HttpMethod.OPTIONS, "api/user/recovery").permitAll()
+                        .requestMatchers(HttpMethod.POST, "api/user/recovery").permitAll()
+
+                        .requestMatchers(HttpMethod.OPTIONS, "api/user/recovery-validation").permitAll()
+                        .requestMatchers(HttpMethod.POST, "api/user/recovery-validation").permitAll()
+
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "api/user/register").permitAll()
 

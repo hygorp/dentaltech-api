@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SessionRepository extends JpaRepository<SessionModel, Long> {
     Boolean existsByUser_UsernameAndIsValidTrue(String username);
+    SessionModel findByUser_Username(String username);
 }

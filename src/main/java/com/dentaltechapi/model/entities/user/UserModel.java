@@ -1,6 +1,7 @@
 
 package com.dentaltechapi.model.entities.user;
 
+import com.dentaltechapi.model.entities.user.accountrecovery.AccountRecoveryModel;
 import com.dentaltechapi.model.entities.user.session.SessionModel;
 import jakarta.persistence.*;
 import lombok.*;
@@ -40,6 +41,11 @@ public class UserModel implements Serializable, UserDetails {
             mappedBy = "user"
     )
     private Set<SessionModel> sessions = new HashSet<>();
+
+    @OneToMany(
+            mappedBy = "user"
+    )
+    private Set<AccountRecoveryModel> recoveries = new HashSet<>();
 
     public UserModel(String username, String password, String email, String role) {
         this.username = username;

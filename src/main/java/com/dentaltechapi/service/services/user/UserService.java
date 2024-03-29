@@ -6,6 +6,7 @@ import com.dentaltechapi.service.exceptions.UserServiceException;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -29,6 +30,14 @@ public class UserService {
         } catch (IllegalArgumentException exception) {
             throw new UserServiceException("Erro ao cadastrar usuário", exception.getCause());
         }
+    }
+
+    public UserModel updateUser(Long id) {
+        UserModel user = userRepository.findById(id).orElseThrow(() -> new UserServiceException("Usuário não encontrado."));
+        UUID randomTemporaryPassword = UUID.randomUUID();
+        user.setPassword(String.valueOf(randomTemporaryPassword));
+
+        return userRepository.save(user);
     }
 
     public Boolean verifyExistingUser(String username) {
