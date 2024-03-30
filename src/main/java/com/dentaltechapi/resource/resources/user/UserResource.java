@@ -40,7 +40,14 @@ public class UserResource {
     private final AccountRecoveryService accountRecoveryService;
     private final EmailService emailService;
 
-    public UserResource(AuthenticationManager authenticationManager, TokenService tokenService, UserService userService, SessionService sessionService, AccountRecoveryService accountRecoveryService, EmailService emailService) {
+    public UserResource(
+            AuthenticationManager authenticationManager,
+            TokenService tokenService,
+            UserService userService,
+            SessionService sessionService,
+            AccountRecoveryService accountRecoveryService,
+            EmailService emailService
+    ) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
         this.userService = userService;
@@ -57,7 +64,9 @@ public class UserResource {
             if (sessionService.verifyExistingSession(userCredentials.username()))
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Este usuário possui uma sessão ativa.");
 
-            UsernamePasswordAuthenticationToken usernamePassword = new UsernamePasswordAuthenticationToken(userCredentials.username(), userCredentials.password());
+            UsernamePasswordAuthenticationToken usernamePassword =
+                    new UsernamePasswordAuthenticationToken(userCredentials.username(), userCredentials.password());
+
             Authentication authentication = authenticationManager.authenticate(usernamePassword);
             String token = tokenService.generateToken((UserModel) authentication.getPrincipal());
 
@@ -72,15 +81,19 @@ public class UserResource {
                     )
             );
 
-            return ResponseEntity.status(HttpStatus.OK).header("Authorization", "Bearer " + token).body(
-                    new UserAuthenticatedDataDTO(
-                            authenticatedUser.getUsername(),
-                            authenticatedUser.getEmail(),
-                            authenticatedUser.getRole()
-                    )
-            );
+            return ResponseEntity.status(HttpStatus.OK)
+                    .header("Authorization", "Bearer " + token)
+                    .body(
+                            new UserAuthenticatedDataDTO(
+                                    authenticatedUser.getUsername(),
+                                    authenticatedUser.getEmail(),
+                                    authenticatedUser.getRole()
+                            )
+                    );
+
         } catch (UserServiceException | TokenServiceException | SessionServiceException exception) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocorreu um erro ao processar a solicitação.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Ocorreu um erro ao processar a solicitação.");
         }
     }
 
@@ -89,8 +102,11 @@ public class UserResource {
         try {
             if (!sessionService.verifyExistingSession(user.username()))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
             sessionService.invalidateSession(user.username());
+
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+
         } catch (SessionServiceException exception) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -101,16 +117,20 @@ public class UserResource {
         try {
             if (!userService.verifyExistingUser(user.username()))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
             if (sessionService.verifyExistingSession(user.username()))
                 sessionService.invalidateSession(user.username());
 
             UserModel registeredUser = userService.findByUsername(user.username());
 
-            AccountRecoveryModel newAccountRecovery = accountRecoveryService.createNewAccountRecovery(new AccountRecoveryModel(
-                    Instant.now(),
-                    Instant.now().plusSeconds(600),
-                    registeredUser
-            ));
+            AccountRecoveryModel newAccountRecovery =
+                    accountRecoveryService.createNewAccountRecovery(
+                            new AccountRecoveryModel(
+                                    true,
+                                    Instant.now(),
+                                    Instant.now().plusSeconds(600), //Dez Minutos
+                                    registeredUser)
+                    );
 
             emailService.sendEMail(
                     new EmailModel(
@@ -122,22 +142,28 @@ public class UserResource {
             );
 
             return ResponseEntity.status(HttpStatus.OK).build();
+
         } catch (UserServiceException | AccountRecoveryException exception) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 
     @PostMapping("/recovery-validation")
-    public ResponseEntity<?> recoveryValidation(@RequestBody UserRecoveryValidationDTO validationCode) {
+    public ResponseEntity<?> recoveryValidation(@RequestBody UserRecoveryValidationDTO recoveryValidation) {
         try {
-            if (!accountRecoveryService.verifyExistingAccountRecovery(validationCode.username()))
+            if (!accountRecoveryService.verifyExistingAccountRecovery(recoveryValidation.username()))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
-            AccountRecoveryModel registeredAccountRecovery = accountRecoveryService.findAccountRecovery(validationCode.username());
+            if (!accountRecoveryService.findAccountRecovery(recoveryValidation.username(), recoveryValidation.code()).getIsValid())
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+            AccountRecoveryModel registeredAccountRecovery =
+                    accountRecoveryService.findAccountRecovery(recoveryValidation.username(), recoveryValidation.code());
+
             if (Instant.now().isAfter(registeredAccountRecovery.getEndValidity()))
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("O código expirou.");
 
-            if (!Objects.equals(registeredAccountRecovery.getCode(), validationCode.code())) {
+            if (!Objects.equals(registeredAccountRecovery.getCode(), recoveryValidation.code())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Código incorreto");
             }
 
@@ -148,13 +174,16 @@ public class UserResource {
                             user.getEmail(),
                             "",
                             "Sua Nova Senha",
-                            "Senha: " + user.getPassword() + ". É fortemente recomendado alterar essa senha assim que fizer login novamente."
+                            "Senha: " + user.getPassword()
+                                    + ". É fortemente recomendado alterar essa senha assim que fizer login novamente."
                     )
             );
 
-            //tratar invalidação do código aqui!
+            registeredAccountRecovery.setIsValid(false);
+            accountRecoveryService.updateAccountRecovery(registeredAccountRecovery);
 
             return ResponseEntity.status(HttpStatus.OK).build();
+
         } catch (UserServiceException | AccountRecoveryException exception) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -167,11 +196,23 @@ public class UserResource {
                 return ResponseEntity.badRequest().body("O Usuário informado já existe.");
 
             String encryptedPassword = new BCryptPasswordEncoder().encode(userRegisterData.password());
-            UserModel newUser = userService.createNewUser(new UserModel(userRegisterData.username(), encryptedPassword, userRegisterData.email(), "user"));
 
-            URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(newUser.getId()).toUri();
+            UserModel newUser = userService.createNewUser(
+                    new UserModel(
+                            userRegisterData.username(),
+                            encryptedPassword,
+                            userRegisterData.email(),
+                            "user")
+            );
+
+            URI uri = ServletUriComponentsBuilder
+                    .fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand(newUser.getId())
+                    .toUri();
 
             return ResponseEntity.created(uri).build();
+
         } catch (UserServiceException exception) {
             return ResponseEntity.badRequest().build();
         }

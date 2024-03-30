@@ -16,9 +16,9 @@ public class AccountRecoveryService {
         this.accountRecoveryRepository = accountRecoveryRepository;
     }
 
-    public AccountRecoveryModel findAccountRecovery(String username) {
+    public AccountRecoveryModel findAccountRecovery(String username, Integer code) {
         try {
-            return accountRecoveryRepository.findByUser_Username(username);
+            return accountRecoveryRepository.findByUser_UsernameAndCode(username, code);
         } catch (NoSuchElementException exception) {
             throw new AccountRecoveryException("Recuperação de conta inválida");
         }
@@ -29,6 +29,16 @@ public class AccountRecoveryService {
             return accountRecoveryRepository.save(accountRecoveryModel);
         } catch (IllegalArgumentException exception) {
             throw new AccountRecoveryException("Erro ao criar recuperação de conta.", exception.getCause());
+        }
+    }
+
+    public void updateAccountRecovery(AccountRecoveryModel accountRecoveryModel) {
+        try {
+            AccountRecoveryModel accountRecovery = accountRecoveryRepository.findById(accountRecoveryModel.getId())
+                    .orElseThrow(() -> new AccountRecoveryException("Recuperação de conta não encontrada."));
+            accountRecoveryRepository.save(accountRecovery);
+        } catch (IllegalArgumentException exception) {
+            throw new AccountRecoveryException("Erro ao atualizar recuperação de conta.", exception.getCause());
         }
     }
 

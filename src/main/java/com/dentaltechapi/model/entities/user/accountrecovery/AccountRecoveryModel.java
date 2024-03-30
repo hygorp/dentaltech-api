@@ -23,6 +23,7 @@ public class AccountRecoveryModel implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private Boolean isValid;
     private Instant startValidity;
     private Instant endValidity;
     private Integer code;
@@ -30,7 +31,8 @@ public class AccountRecoveryModel implements Serializable {
     @ManyToOne
     private UserModel user;
 
-    public AccountRecoveryModel(Instant startValidity, Instant endValidity, UserModel user) {
+    public AccountRecoveryModel(Boolean isValid, Instant startValidity, Instant endValidity, UserModel user) {
+        this.isValid = isValid;
         this.code = generateCode();
         this.startValidity = startValidity;
         this.endValidity = endValidity;

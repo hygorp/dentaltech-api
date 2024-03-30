@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AccountRecoveryRepository extends JpaRepository<AccountRecoveryModel, Long> {
-    AccountRecoveryModel findByUser_Username(String username);
+    AccountRecoveryModel findByUser_UsernameAndCode(String username, Integer code);
     Boolean existsByUser_Username(String username);
 }
