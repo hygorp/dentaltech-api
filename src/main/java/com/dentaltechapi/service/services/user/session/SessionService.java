@@ -2,10 +2,14 @@ package com.dentaltechapi.service.services.user.session;
 
 import com.dentaltechapi.model.entities.user.session.SessionModel;
 import com.dentaltechapi.repository.repositories.user.session.SessionRepository;
-import com.dentaltechapi.service.exceptions.SessionServiceException;
+import com.dentaltechapi.service.exceptions.user.session.SessionCreationException;
+import com.dentaltechapi.service.exceptions.user.session.SessionNotFoundException;
+import com.dentaltechapi.service.exceptions.user.session.SessionUpdateException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 public class SessionService {
@@ -15,22 +19,40 @@ public class SessionService {
         this.sessionRepository = sessionRepository;
     }
 
-    public void createNewSession(SessionModel session) {
+    public List<SessionModel> findAllValidSessions() {
+        return sessionRepository.findAllByIsValidTrue();
+    }
+
+    public SessionModel findSessionByID(UUID id) {
+        return sessionRepository.findById(id).orElseThrow();
+    }
+
+    public SessionModel createNewSession(SessionModel session) {
         try {
-            sessionRepository.save(session);
+            return sessionRepository.save(session);
         } catch (IllegalArgumentException exception) {
-            throw new SessionServiceException("Erro ao criar sessão", exception.getCause());
+            throw new SessionCreationException("Erro ao criar sessão", exception.getCause());
         }
     }
 
-    public void invalidateSession(String username) {
+    public void updateSessionValidity(UUID id, Boolean validity) {
         try {
-            SessionModel session = sessionRepository.findByUser_Username(username);
+            SessionModel session = sessionRepository.findById(id).orElseThrow(() -> new SessionNotFoundException("Sessão não encontrada."));
+            session.setIsValid(validity);
+            sessionRepository.save(session);
+        } catch (SessionNotFoundException | IllegalArgumentException exception) {
+            throw new SessionUpdateException("Erro ao atualizar sessão.", exception.getCause());
+        }
+    }
+
+    public void invalidateSession(UUID id) {
+        try {
+            SessionModel session = sessionRepository.findById(id).orElseThrow();
             session.setIsValid(false);
 
             sessionRepository.save(session);
         } catch (NoSuchElementException exception) {
-            throw new SessionServiceException("Erro ao encontrar sessão.", exception.getCause());
+            throw new SessionNotFoundException("Erro ao encontrar sessão.", exception.getCause());
         }
     }
 

@@ -1,4 +1,4 @@
-package com.dentaltechapi.service.exceptions;
+package com.dentaltechapi.service.exceptions.authorization;
 
 public class AuthorizationServiceException extends RuntimeException {
     public AuthorizationServiceException(String message) {

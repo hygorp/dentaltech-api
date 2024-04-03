@@ -21,21 +21,27 @@ public class AccountRecoveryModel implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private Boolean isValid;
-    private Instant startValidity;
-    private Instant endValidity;
+    @Column(nullable = false, unique = true)
     private Integer code;
+
+    @Column(nullable = false)
+    private Instant startValidity;
+
+    @Column(nullable = false)
+    private Instant endValidity;
+
+    @Column(nullable = false)
+    private Boolean isValid;
+
 
     @ManyToOne
     private UserModel user;
 
-    public AccountRecoveryModel(Boolean isValid, Instant startValidity, Instant endValidity, UserModel user) {
-        this.isValid = isValid;
+    public AccountRecoveryModel(Instant startValidity, Instant endValidity, Boolean isValid, UserModel user) {
         this.code = generateCode();
         this.startValidity = startValidity;
         this.endValidity = endValidity;
+        this.isValid = isValid;
         this.user = user;
     }
 

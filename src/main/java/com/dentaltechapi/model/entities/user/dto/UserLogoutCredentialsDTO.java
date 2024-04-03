@@ -1,4 +1,6 @@
 package com.dentaltechapi.model.entities.user.dto;
 
-public record UserLogoutCredentialsDTO(String username) {
+import java.util.UUID;
+
+public record UserLogoutCredentialsDTO(String username, UUID sessionId) {
 }

@@ -1,7 +1,8 @@
 package com.dentaltechapi.service.services.authorization;
 
 import com.dentaltechapi.repository.repositories.user.UserRepository;
-import com.dentaltechapi.service.exceptions.AuthorizationServiceException;
+import com.dentaltechapi.service.exceptions.authorization.AuthorizationServiceException;
+import com.dentaltechapi.service.exceptions.user.UserNotFoundException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class AuthorizationService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) {
         try {
             return userRepository.findByUsername(username);
-        } catch (Exception exception) {
+        } catch (UserNotFoundException exception) {
             throw new AuthorizationServiceException("Usuário não encontrado", exception.getCause());
         }
     }

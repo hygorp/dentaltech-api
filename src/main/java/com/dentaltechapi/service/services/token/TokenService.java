@@ -3,7 +3,8 @@ package com.dentaltechapi.service.services.token;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.dentaltechapi.model.entities.user.UserModel;
-import com.dentaltechapi.service.exceptions.TokenServiceException;
+import com.dentaltechapi.service.exceptions.token.TokenGenerationException;
+import com.dentaltechapi.service.exceptions.token.TokenValidationException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -24,7 +25,7 @@ public class TokenService {
                     .withExpiresAt(generateExpirationDateTime())
                     .sign(algorithm);
         } catch (Exception exception) {
-            throw new TokenServiceException("Erro ao Gerar Token.", exception.getCause());
+            throw new TokenGenerationException("Erro ao Gerar Token.", exception.getCause());
         }
     }
 
@@ -37,7 +38,7 @@ public class TokenService {
                     .verify(token)
                     .getSubject();
         } catch (Exception exception) {
-            throw new TokenServiceException("Erro ao Validar Token.", exception.getCause());
+            throw new TokenValidationException("Erro ao Validar Token.", exception.getCause());
         }
     }
 

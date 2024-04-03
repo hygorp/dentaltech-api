@@ -5,10 +5,12 @@ import com.dentaltechapi.model.entities.user.UserModel;
 import com.dentaltechapi.model.entities.user.accountrecovery.AccountRecoveryModel;
 import com.dentaltechapi.model.entities.user.dto.*;
 import com.dentaltechapi.model.entities.user.session.SessionModel;
-import com.dentaltechapi.service.exceptions.AccountRecoveryException;
-import com.dentaltechapi.service.exceptions.SessionServiceException;
-import com.dentaltechapi.service.exceptions.TokenServiceException;
-import com.dentaltechapi.service.exceptions.UserServiceException;
+import com.dentaltechapi.service.exceptions.user.UserCreationException;
+import com.dentaltechapi.service.exceptions.user.UserNotFoundException;
+import com.dentaltechapi.service.exceptions.user.UserUpdateException;
+import com.dentaltechapi.service.exceptions.user.accountrecovery.AccountRecoveryCreationException;
+import com.dentaltechapi.service.exceptions.user.accountrecovery.AccountRecoveryNotFoundException;
+import com.dentaltechapi.service.exceptions.user.session.SessionNotFoundException;
 import com.dentaltechapi.service.services.email.EmailService;
 import com.dentaltechapi.service.services.token.TokenService;
 import com.dentaltechapi.service.services.user.UserService;
@@ -61,6 +63,7 @@ public class UserResource {
         try {
             if (!userService.verifyExistingUser(userCredentials.username()))
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
             if (sessionService.verifyExistingSession(userCredentials.username()))
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Este usuário possui uma sessão ativa.");
 
@@ -70,8 +73,8 @@ public class UserResource {
             Authentication authentication = authenticationManager.authenticate(usernamePassword);
             String token = tokenService.generateToken((UserModel) authentication.getPrincipal());
 
-            UserModel authenticatedUser = userService.findByUsername(userCredentials.username());
-            sessionService.createNewSession(
+            UserModel authenticatedUser = userService.findByUserUsername(userCredentials.username());
+            SessionModel newSession = sessionService.createNewSession(
                     new SessionModel(
                             true,
                             Instant.now(),
@@ -82,16 +85,17 @@ public class UserResource {
             );
 
             return ResponseEntity.status(HttpStatus.OK)
-                    .header("Authorization", "Bearer " + token)
                     .body(
                             new UserAuthenticatedDataDTO(
                                     authenticatedUser.getUsername(),
                                     authenticatedUser.getEmail(),
-                                    authenticatedUser.getRole()
+                                    authenticatedUser.getRole(),
+                                    token,
+                                    newSession.getId()
                             )
                     );
 
-        } catch (UserServiceException | TokenServiceException | SessionServiceException exception) {
+        } catch (UserNotFoundException exception) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Ocorreu um erro ao processar a solicitação.");
         }
@@ -103,11 +107,11 @@ public class UserResource {
             if (!sessionService.verifyExistingSession(user.username()))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
-            sessionService.invalidateSession(user.username());
+            sessionService.invalidateSession(user.sessionId());
 
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
-        } catch (SessionServiceException exception) {
+        } catch (SessionNotFoundException exception) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
@@ -118,17 +122,14 @@ public class UserResource {
             if (!userService.verifyExistingUser(user.username()))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
-            if (sessionService.verifyExistingSession(user.username()))
-                sessionService.invalidateSession(user.username());
-
-            UserModel registeredUser = userService.findByUsername(user.username());
+            UserModel registeredUser = userService.findByUserUsername(user.username());
 
             AccountRecoveryModel newAccountRecovery =
                     accountRecoveryService.createNewAccountRecovery(
                             new AccountRecoveryModel(
-                                    true,
                                     Instant.now(),
                                     Instant.now().plusSeconds(600), //Dez Minutos
+                                    true,
                                     registeredUser)
                     );
 
@@ -143,7 +144,7 @@ public class UserResource {
 
             return ResponseEntity.status(HttpStatus.OK).build();
 
-        } catch (UserServiceException | AccountRecoveryException exception) {
+        } catch (UserNotFoundException | AccountRecoveryCreationException exception) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
@@ -154,37 +155,30 @@ public class UserResource {
             if (!accountRecoveryService.verifyExistingAccountRecovery(recoveryValidation.username()))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
-            if (!accountRecoveryService.findAccountRecovery(recoveryValidation.username(), recoveryValidation.code()).getIsValid())
+            if (!accountRecoveryService.findAccountRecoveryByCode(recoveryValidation.code()).getIsValid())
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
             AccountRecoveryModel registeredAccountRecovery =
-                    accountRecoveryService.findAccountRecovery(recoveryValidation.username(), recoveryValidation.code());
-
-            if (Instant.now().isAfter(registeredAccountRecovery.getEndValidity()))
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("O código expirou.");
+                    accountRecoveryService.findAccountRecoveryByCode(recoveryValidation.code());
 
             if (!Objects.equals(registeredAccountRecovery.getCode(), recoveryValidation.code())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Código incorreto");
             }
 
-            UserModel user = userService.updateUser(registeredAccountRecovery.getUser().getId());
+            String userEmail = userService.updateUserPassword(registeredAccountRecovery.getUser().getId(), recoveryValidation.password());
 
             emailService.sendEMail(
                     new EmailModel(
-                            user.getEmail(),
+                            userEmail,
                             "",
-                            "Sua Nova Senha",
-                            "Senha: " + user.getPassword()
-                                    + ". É fortemente recomendado alterar essa senha assim que fizer login novamente."
+                            "Dentaltech - Alteração de Senha",
+                            "Sua senha foi alterada com sucesso!"
                     )
             );
 
-            registeredAccountRecovery.setIsValid(false);
-            accountRecoveryService.updateAccountRecovery(registeredAccountRecovery);
-
             return ResponseEntity.status(HttpStatus.OK).build();
 
-        } catch (UserServiceException | AccountRecoveryException exception) {
+        } catch (UserUpdateException | AccountRecoveryNotFoundException exception) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -213,7 +207,7 @@ public class UserResource {
 
             return ResponseEntity.created(uri).build();
 
-        } catch (UserServiceException exception) {
+        } catch (UserCreationException exception) {
             return ResponseEntity.badRequest().build();
         }
     }
