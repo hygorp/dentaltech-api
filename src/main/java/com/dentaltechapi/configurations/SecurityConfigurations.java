@@ -48,6 +48,10 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.OPTIONS, "api/token").permitAll()
                         .requestMatchers(HttpMethod.GET, "api/token").permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "api/specialist/all").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "api/specialist/new").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

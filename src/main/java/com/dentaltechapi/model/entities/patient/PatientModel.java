@@ -10,7 +10,6 @@ import com.dentaltechapi.model.entities.healthinsurance.HealthInsuranceModel;
 import com.dentaltechapi.model.entities.odontogram.OdontogramModel;
 import com.dentaltechapi.model.entities.patient.responsible.ResponsibleModel;
 import com.dentaltechapi.model.entities.phone.PhoneModel;
-import com.dentaltechapi.model.entities.scheduling.SchedulingModel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -119,14 +118,6 @@ public class PatientModel implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "anamnesis_id")
     )
     private Set<AnamnesisModel> anamnesisList = new HashSet<>();
-
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinTable(
-            name = "tb_patient_schedules",
-            joinColumns = @JoinColumn(name = "patient_id"),
-            inverseJoinColumns = @JoinColumn(name = "scheduling_id")
-    )
-    private Set<SchedulingModel> schedules;
 
     public PatientModel(String name, String cpf, String nationality, LocalDate birthdate, String email, String observation) {
         this.name = name;
