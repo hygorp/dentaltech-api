@@ -52,6 +52,11 @@ public class SpecialistModel implements Serializable {
     @JoinTable(name = "tb_specialist_specialties", joinColumns = @JoinColumn(name = "specialist_id"), inverseJoinColumns = @JoinColumn(name = "specialty_id"))
     private Set<SpecialtyModel> specialties;
 
-    @OneToOne(mappedBy = "specialist")
-    private OfficeDateTimeModel officeDateTime;
+    @OneToMany
+    @JoinTable(
+            name = "tb_specialist_office_date_time",
+            joinColumns = @JoinColumn(name = "specialist_id"),
+            inverseJoinColumns = @JoinColumn(name = "office_date_time_id")
+    )
+    private Set<OfficeDateTimeModel> officeDateTime;
 }

@@ -1,7 +1,6 @@
 package com.dentaltechapi.service.services.specialist;
 
 import com.dentaltechapi.model.entities.officedatetime.OfficeDateTimeModel;
-import com.dentaltechapi.model.entities.officedatetime.dto.OfficeDateTimeDTO;
 import com.dentaltechapi.model.entities.specialist.SpecialistModel;
 import com.dentaltechapi.model.entities.specialist.dto.SpecialistDTO;
 import com.dentaltechapi.model.entities.user.UserModel;
@@ -13,9 +12,7 @@ import com.dentaltechapi.service.services.user.UserService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 @Service
 public class SpecialistService {
@@ -46,11 +43,7 @@ public class SpecialistService {
                         specialist.getCredentials().getEmail(),
                         specialist.getPhones(),
                         specialist.getSpecialties(),
-                        new OfficeDateTimeDTO(
-                                specialist.getOfficeDateTime().getId(),
-                                specialist.getOfficeDateTime().getDay(),
-                                specialist.getOfficeDateTime().getSchedules()
-                        )
+                        specialist.getOfficeDateTime()
                 ));
             }
 
@@ -73,7 +66,11 @@ public class SpecialistService {
                     )
             );
 
-            OfficeDateTimeModel newOfficeDateTime = officeDateTimeService.createNewOfficeDateTime(specialistModel.getOfficeDateTime());
+            Set<OfficeDateTimeModel> persistedOfficeDateTimes = new HashSet<>();
+            for (OfficeDateTimeModel officeDateTime : specialistModel.getOfficeDateTime()) {
+                OfficeDateTimeModel persistedOfficeDateTime = officeDateTimeService.createNewOfficeDateTime(officeDateTime);
+                persistedOfficeDateTimes.add(persistedOfficeDateTime);
+            }
 
             newSpecialist.setName(specialistModel.getName());
             newSpecialist.setSignature(specialistModel.getSignature());
@@ -83,12 +80,9 @@ public class SpecialistService {
             newSpecialist.setCredentials(newUserCredentials);
             newSpecialist.setPhones(specialistModel.getPhones());
             newSpecialist.setSpecialties(specialistModel.getSpecialties());
-            newSpecialist.setOfficeDateTime(newOfficeDateTime);
+            newSpecialist.setOfficeDateTime(persistedOfficeDateTimes);
 
-            SpecialistModel savedSpecialist = specialistRepository.save(newSpecialist);
-
-            newOfficeDateTime.setSpecialist(savedSpecialist);
-            officeDateTimeService.createNewOfficeDateTime(newOfficeDateTime);
+            specialistRepository.save(newSpecialist);
         } catch (IllegalArgumentException exception) {
             throw new SpecialistCreationException("Erro ao salvar especialista.", exception.getCause());
         }

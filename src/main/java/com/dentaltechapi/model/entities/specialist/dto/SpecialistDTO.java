@@ -1,6 +1,6 @@
 package com.dentaltechapi.model.entities.specialist.dto;
 
-import com.dentaltechapi.model.entities.officedatetime.dto.OfficeDateTimeDTO;
+import com.dentaltechapi.model.entities.officedatetime.OfficeDateTimeModel;
 import com.dentaltechapi.model.entities.phone.PhoneModel;
 import com.dentaltechapi.model.entities.specialty.SpecialtyModel;
 
@@ -16,6 +16,6 @@ public record SpecialistDTO(
         String email,
         Set<PhoneModel> phones,
         Set<SpecialtyModel> specialties,
-        OfficeDateTimeDTO officeDateTime
+        Set<OfficeDateTimeModel> officeDateTime
 ) {
 }

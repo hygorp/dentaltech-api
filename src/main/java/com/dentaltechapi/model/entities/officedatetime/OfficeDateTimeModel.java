@@ -1,6 +1,5 @@
 package com.dentaltechapi.model.entities.officedatetime;
 
-import com.dentaltechapi.model.entities.specialist.SpecialistModel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,8 +27,4 @@ public class OfficeDateTimeModel implements Serializable {
 
     @ElementCollection
     private List<LocalTime> schedules;
-
-    @OneToOne
-    private SpecialistModel specialist;
-
 }
