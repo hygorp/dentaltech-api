@@ -48,11 +48,17 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.OPTIONS, "api/token").permitAll()
                         .requestMatchers(HttpMethod.GET, "api/token").permitAll()
 
+                        .requestMatchers(HttpMethod.OPTIONS, "api/specialist/all").permitAll()
                         .requestMatchers(HttpMethod.GET, "api/specialist/all").permitAll()
 
+                        .requestMatchers(HttpMethod.OPTIONS, "api/specialist/new").permitAll()
+                        .requestMatchers(HttpMethod.GET, "api/specialist/new").permitAll()
                         .requestMatchers(HttpMethod.POST, "api/specialist/new").permitAll()
 
-                        .anyRequest().authenticated()
+                        .requestMatchers(HttpMethod.OPTIONS, "api/specialty/all").permitAll()
+                        .requestMatchers(HttpMethod.GET, "api/specialty/all").permitAll()
+
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

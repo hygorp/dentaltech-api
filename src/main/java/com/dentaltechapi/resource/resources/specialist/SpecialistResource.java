@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/specialist")
+@RequestMapping("/api/specialists")
 public class SpecialistResource {
 
     private final SpecialistService specialistService;
@@ -31,7 +31,7 @@ public class SpecialistResource {
     }
 
     @PostMapping("/new")
-    public ResponseEntity<?> createSpecialist(@RequestBody SpecialistModel specialistModel) {
+    public ResponseEntity<HttpStatus> createSpecialist(@RequestBody SpecialistModel specialistModel) {
         try {
             specialistService.createNewSpecialist(specialistModel);
             return ResponseEntity.status(HttpStatus.CREATED).build();

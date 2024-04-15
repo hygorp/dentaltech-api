@@ -24,7 +24,14 @@ public class SpecialtyModel implements Serializable {
     @Column(nullable = false)
     private String specialty;
 
+    private String description;
+
     public SpecialtyModel(String specialty) {
         this.specialty = specialty;
+    }
+
+    public SpecialtyModel(String specialty, String description) {
+        this.specialty = specialty;
+        this.description = description;
     }
 }

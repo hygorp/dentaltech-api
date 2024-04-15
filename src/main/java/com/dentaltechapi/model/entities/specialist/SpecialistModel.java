@@ -32,8 +32,8 @@ public class SpecialistModel implements Serializable {
     @Column(nullable = false)
     private String signature;
 
-    @Column(nullable = false)
-    private String cpfOrCnpj;
+    @Column(nullable = false, unique = true)
+    private String cpf;
 
     @Column(nullable = false)
     private String cro;
@@ -45,14 +45,21 @@ public class SpecialistModel implements Serializable {
     private UserModel credentials;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinTable(name = "tb_specialist_phones", joinColumns = @JoinColumn(name = "specialist_id"), inverseJoinColumns = @JoinColumn(name = "phone_id"))
+    @JoinTable(name = "tb_specialist_phones",
+            joinColumns = @JoinColumn(name = "specialist_id"),
+            inverseJoinColumns = @JoinColumn(name = "phone_id")
+    )
     private Set<PhoneModel> phones;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinTable(name = "tb_specialist_specialties", joinColumns = @JoinColumn(name = "specialist_id"), inverseJoinColumns = @JoinColumn(name = "specialty_id"))
+    @JoinTable(
+            name = "tb_specialist_specialties",
+            joinColumns = @JoinColumn(name = "specialist_id"),
+            inverseJoinColumns = @JoinColumn(name = "specialty_id")
+    )
     private Set<SpecialtyModel> specialties;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinTable(
             name = "tb_specialist_office_date_time",
             joinColumns = @JoinColumn(name = "specialist_id"),
@@ -60,3 +67,4 @@ public class SpecialistModel implements Serializable {
     )
     private Set<OfficeDateTimeModel> officeDateTime;
 }
+
