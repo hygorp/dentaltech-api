@@ -30,6 +30,15 @@ public class SpecialistResource {
         }
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<SpecialistDTO> findSpecialistById(@PathVariable long id) {
+        try {
+            return ResponseEntity.ok().body(specialistService.findSpecialistById(id));
+        } catch (SpecialistNotFoundException exception) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
     @PostMapping("/new")
     public ResponseEntity<HttpStatus> createSpecialist(@RequestBody SpecialistModel specialistModel) {
         try {

@@ -10,7 +10,7 @@ public record SpecialistDTO(
         Long id,
         String name,
         String signature,
-        String cpfOrCnpj,
+        String cpf,
         String cro,
         String croState,
         String email,

@@ -33,8 +33,8 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "api/user/login").permitAll()
 
-                        .requestMatchers(HttpMethod.OPTIONS, "api/user/logout").permitAll()
-                        .requestMatchers(HttpMethod.POST, "api/user/logout").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "api/user/logout").authenticated()
+                        .requestMatchers(HttpMethod.POST, "api/user/logout").authenticated()
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/recovery").permitAll()
                         .requestMatchers(HttpMethod.POST, "api/user/recovery").permitAll()
@@ -45,18 +45,17 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "api/user/register").permitAll()
 
-                        .requestMatchers(HttpMethod.OPTIONS, "api/token").permitAll()
-                        .requestMatchers(HttpMethod.GET, "api/token").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "api/token/validate-token").permitAll()
+                        .requestMatchers(HttpMethod.GET, "api/token/validate-token").permitAll()
 
-                        .requestMatchers(HttpMethod.OPTIONS, "api/specialist/all").permitAll()
-                        .requestMatchers(HttpMethod.GET, "api/specialist/all").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "api/specialist/all").authenticated()
+                        .requestMatchers(HttpMethod.GET, "api/specialist/**").authenticated()
 
-                        .requestMatchers(HttpMethod.OPTIONS, "api/specialist/new").permitAll()
-                        .requestMatchers(HttpMethod.GET, "api/specialist/new").permitAll()
-                        .requestMatchers(HttpMethod.POST, "api/specialist/new").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "api/specialist/new").hasRole("admin")
+                        .requestMatchers(HttpMethod.POST, "api/specialist/new").hasRole("admin")
 
-                        .requestMatchers(HttpMethod.OPTIONS, "api/specialty/all").permitAll()
-                        .requestMatchers(HttpMethod.GET, "api/specialty/all").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "api/specialty/all").authenticated()
+                        .requestMatchers(HttpMethod.GET, "api/specialty/all").authenticated()
 
                         .anyRequest().permitAll()
                 )

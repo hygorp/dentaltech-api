@@ -51,7 +51,7 @@ public class SpecialistModel implements Serializable {
     )
     private Set<PhoneModel> phones;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "tb_specialist_specialties",
             joinColumns = @JoinColumn(name = "specialist_id"),

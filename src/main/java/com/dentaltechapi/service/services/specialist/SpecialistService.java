@@ -23,14 +23,14 @@ public class SpecialistService {
 
     private final SpecialistRepository specialistRepository;
     private final UserService userService;
-    private final SpecialtyService specialtyService;
     private final OfficeDateTimeService officeDateTimeService;
+    private final SpecialtyService specialtyService;
 
-    public SpecialistService(SpecialistRepository specialistRepository, UserService userService, SpecialtyService specialtyService, OfficeDateTimeService officeDateTimeService) {
+    public SpecialistService(SpecialistRepository specialistRepository, UserService userService, OfficeDateTimeService officeDateTimeService, SpecialtyService specialtyService) {
         this.specialistRepository = specialistRepository;
         this.userService = userService;
-        this.specialtyService = specialtyService;
         this.officeDateTimeService = officeDateTimeService;
+        this.specialtyService = specialtyService;
     }
 
     public List<SpecialistDTO> findAllSpecialists() {
@@ -59,9 +59,30 @@ public class SpecialistService {
         }
     }
 
+    public SpecialistDTO findSpecialistById(Long id) {
+        try {
+            SpecialistModel specialistModel = specialistRepository.findById(id).orElseThrow(() -> new SpecialistNotFoundException("Especialista não encontrado."));
+            return new SpecialistDTO(
+                    specialistModel.getId(),
+                    specialistModel.getName(),
+                    specialistModel.getSignature(),
+                    specialistModel.getCpf(),
+                    specialistModel.getCro(),
+                    specialistModel.getCroState(),
+                    specialistModel.getCredentials().getEmail(),
+                    specialistModel.getPhones(),
+                    specialistModel.getSpecialties(),
+                    specialistModel.getOfficeDateTime()
+            );
+        } catch (NoSuchElementException | SpecialistNotFoundException exception) {
+            throw new SpecialistNotFoundException("Especialista não encontrado.");
+        }
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void createNewSpecialist(SpecialistModel specialistModel) {
         try {
+            System.out.println(specialistModel.getSpecialties());
             SpecialistModel newSpecialist = new SpecialistModel();
 
             UserModel newUserCredentials = userService.createNewUser(
@@ -81,8 +102,12 @@ public class SpecialistService {
 
             Set<SpecialtyModel> persistedSpecialties = new HashSet<>();
             for (SpecialtyModel specialty : specialistModel.getSpecialties()) {
-                if (specialtyService.verifyExistingSpecialty(specialty.getId()))
-                    persistedSpecialties.add(specialtyService.findSpecialtyById(specialty.getId()));
+                SpecialtyModel persistedSpecialty = specialtyService.findSpecialtyById(specialty.getId());
+                if (persistedSpecialty != null) {
+                    persistedSpecialties.add(persistedSpecialty);
+                } else {
+                    throw new IllegalArgumentException("Especialidade não encontrada para o ID: " + specialty.getId());
+                }
             }
 
             newSpecialist.setName(specialistModel.getName());
