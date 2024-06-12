@@ -5,14 +5,14 @@ import com.dentaltechapi.model.entities.specialist.dto.SpecialistDTO;
 import com.dentaltechapi.service.exceptions.specialist.SpecialistCreationException;
 import com.dentaltechapi.service.exceptions.specialist.SpecialistNotFoundException;
 import com.dentaltechapi.service.services.specialist.SpecialistService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/api/specialists")
+@RequestMapping("/api/specialist")
 public class SpecialistResource {
 
     private final SpecialistService specialistService;
@@ -22,9 +22,10 @@ public class SpecialistResource {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<SpecialistDTO>> findAllSpecialists() {
+    public ResponseEntity<Page<SpecialistDTO>> findAllSpecialists(Pageable pageable) {
         try {
-            return ResponseEntity.ok().body(specialistService.findAllSpecialists());
+            Page<SpecialistDTO> specialistsPage = specialistService.findAllSpecialists(pageable);
+            return ResponseEntity.ok().body(specialistsPage);
         } catch (SpecialistNotFoundException exception) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -39,6 +40,20 @@ public class SpecialistResource {
         }
     }
 
+    @GetMapping("/filter-specialists")
+    public ResponseEntity<Page<SpecialistDTO>> filterSpecialistsByNameAndSpecialty(
+            Pageable pageable,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "specialties", required = false) Long[] specialties
+            ) {
+        try {
+            Page<SpecialistDTO> specialistsPage = specialistService.filterSpecialistsByNameAndSpecialty(pageable, name, specialties);
+            return ResponseEntity.ok().body(specialistsPage);
+        } catch (SpecialistNotFoundException exception) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
     @PostMapping("/new")
     public ResponseEntity<HttpStatus> createSpecialist(@RequestBody SpecialistModel specialistModel) {
         try {
@@ -46,6 +61,19 @@ public class SpecialistResource {
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (SpecialistCreationException exception) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/verify-existing-cpf/{cpf}")
+    public ResponseEntity<?> verifyExistingCpf(@PathVariable String cpf) {
+        try {
+            if (specialistService.verifyExistingCpf(cpf)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            } else {
+                return ResponseEntity.status(HttpStatus.OK).build();
+            }
+        } catch (SpecialistNotFoundException exception) {
+            return ResponseEntity.badRequest().build();
         }
     }
 }

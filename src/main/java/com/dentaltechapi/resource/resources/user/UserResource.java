@@ -22,10 +22,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -88,7 +85,6 @@ public class UserResource {
                     .body(
                             new UserAuthenticatedDataDTO(
                                     authenticatedUser.getUsername(),
-                                    authenticatedUser.getEmail(),
                                     authenticatedUser.getRole(),
                                     token,
                                     newSession.getId()
@@ -116,8 +112,8 @@ public class UserResource {
         }
     }
 
-    @PostMapping("/recovery")
-    public ResponseEntity<?> recovery(@RequestBody UserRecoveryDTO user) {
+    @PostMapping("/init-reset-password")
+    public ResponseEntity<?> initResetPassword(@RequestBody UserResetPasswordInitDTO user) {
         try {
             if (!userService.verifyExistingUser(user.username()))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -149,14 +145,36 @@ public class UserResource {
         }
     }
 
-    @PostMapping("/recovery-validation")
-    public ResponseEntity<?> recoveryValidation(@RequestBody UserRecoveryValidationDTO recoveryValidation) {
+    @PostMapping("/validate-confirmation-code")
+    public ResponseEntity<?> validateConfirmationCode(@RequestBody UserResetPasswordConfirmation user) {
+        try {
+            if (!accountRecoveryService.verifyExistingAccountRecovery(user.username()))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
+            AccountRecoveryModel registeredAccountRecovery =
+                    accountRecoveryService.findAccountByCodeAndUsername(user.code(), user.username());
+
+            if (!accountRecoveryService.findAccountRecoveryByCode(registeredAccountRecovery.getCode()).getIsValid())
+                return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).build();
+
+            if (registeredAccountRecovery.getCode().equals(user.code()) && registeredAccountRecovery.getUser().getUsername().equals(user.username()))
+                return ResponseEntity.status(HttpStatus.OK).build();
+            else
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        } catch (UserNotFoundException | AccountRecoveryCreationException exception) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @PostMapping("/new-password")
+    public ResponseEntity<?> newPassword(@RequestBody UserRecoveryValidationDTO recoveryValidation) {
         try {
             if (!accountRecoveryService.verifyExistingAccountRecovery(recoveryValidation.username()))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
             if (!accountRecoveryService.findAccountRecoveryByCode(recoveryValidation.code()).getIsValid())
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+                return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).build();
 
             AccountRecoveryModel registeredAccountRecovery =
                     accountRecoveryService.findAccountRecoveryByCode(recoveryValidation.code());
@@ -175,6 +193,8 @@ public class UserResource {
                             "Sua senha foi alterada com sucesso!"
                     )
             );
+            registeredAccountRecovery.setIsValid(false);
+            accountRecoveryService.updateAccountRecoveryStatus(registeredAccountRecovery);
 
             return ResponseEntity.status(HttpStatus.OK).build();
 
@@ -208,6 +228,32 @@ public class UserResource {
             return ResponseEntity.created(uri).build();
 
         } catch (UserCreationException exception) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/verify-existing-username/{username}")
+    public ResponseEntity<?> verifyExistingUsername(@PathVariable String username) {
+        try {
+            if (userService.verifyExistingUser(username)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            } else {
+                return ResponseEntity.status(HttpStatus.OK).build();
+            }
+        } catch (UserNotFoundException exception) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/verify-existing-email/{email}")
+    public ResponseEntity<?> verifyExistingEmail(@PathVariable String email) {
+        try {
+            if (userService.verifyExistingEmail(email)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            } else {
+                return ResponseEntity.status(HttpStatus.OK).build();
+            }
+        } catch (UserNotFoundException exception) {
             return ResponseEntity.badRequest().build();
         }
     }

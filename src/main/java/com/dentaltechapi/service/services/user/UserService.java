@@ -50,4 +50,8 @@ public class UserService {
     public Boolean verifyExistingUser(String username) {
         return userRepository.existsByUsername(username);
     }
+
+    public Boolean verifyExistingEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
 }

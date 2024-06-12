@@ -27,6 +27,14 @@ public class AccountRecoveryService {
         }
     }
 
+    public AccountRecoveryModel findAccountByCodeAndUsername(Integer code, String username) {
+        try {
+            return accountRecoveryRepository.findByCodeAndUser_Username(code, username);
+        } catch (NoSuchElementException exception) {
+            throw new AccountRecoveryNotFoundException("Recuperação de conta não encontrada.", exception.getCause());
+        }
+    }
+
     public List<AccountRecoveryModel> findAllValidAccountRecoveries() {
         try {
             return accountRecoveryRepository.findByIsValidTrue();

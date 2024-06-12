@@ -46,7 +46,6 @@ public class TokenResource {
 
             UserAuthenticatedDataDTO userData = new UserAuthenticatedDataDTO(
                     authenticatedUser.getUsername(),
-                    authenticatedUser.getEmail(),
                     authenticatedUser.getRole(),
                     currentSession.getToken(),
                     currentSession.getId()

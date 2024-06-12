@@ -11,12 +11,19 @@ import com.dentaltechapi.service.exceptions.specialist.SpecialistNotFoundExcepti
 import com.dentaltechapi.service.services.officedatetime.OfficeDateTimeService;
 import com.dentaltechapi.service.services.specialty.SpecialtyService;
 import com.dentaltechapi.service.services.user.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class SpecialistService {
@@ -33,27 +40,22 @@ public class SpecialistService {
         this.specialtyService = specialtyService;
     }
 
-    public List<SpecialistDTO> findAllSpecialists() {
+    public Page<SpecialistDTO> findAllSpecialists(Pageable pageable) {
         try {
-            List<SpecialistModel> listOfSpecialists =  specialistRepository.findAll();
-            List<SpecialistDTO> listOfSpecialistDTOS = new ArrayList<>();
+            Page<SpecialistModel> listOfSpecialists = specialistRepository.findAll(pageable);
 
-            for (SpecialistModel specialist : listOfSpecialists) {
-                listOfSpecialistDTOS.add(new SpecialistDTO(
-                        specialist.getId(),
-                        specialist.getName(),
-                        specialist.getSignature(),
-                        specialist.getCpf(),
-                        specialist.getCro(),
-                        specialist.getCroState(),
-                        specialist.getCredentials().getEmail(),
-                        specialist.getPhones(),
-                        specialist.getSpecialties(),
-                        specialist.getOfficeDateTime()
-                ));
-            }
-
-            return listOfSpecialistDTOS;
+            return listOfSpecialists.map(specialist -> new SpecialistDTO(
+                    specialist.getId(),
+                    specialist.getName(),
+                    specialist.getSignature(),
+                    specialist.getCpf(),
+                    specialist.getCro(),
+                    specialist.getCroState(),
+                    specialist.getCredentials().getEmail(),
+                    specialist.getPhones(),
+                    specialist.getSpecialties(),
+                    specialist.getOfficeDateTime()
+            ));
         } catch (NoSuchElementException exception) {
             throw new SpecialistNotFoundException("Não foram encontrados especialistas.", exception.getCause());
         }
@@ -76,6 +78,28 @@ public class SpecialistService {
             );
         } catch (NoSuchElementException | SpecialistNotFoundException exception) {
             throw new SpecialistNotFoundException("Especialista não encontrado.");
+        }
+    }
+
+    public Page<SpecialistDTO> filterSpecialistsByNameAndSpecialty(Pageable pageable, String name, Long[] specialties) {
+        try {
+            Page<SpecialistModel> pageOfSpecialists;
+
+            if (specialties != null && specialties.length > 0)
+                pageOfSpecialists =
+                        specialistRepository.findDistinctByNameContainingIgnoreCaseAndSpecialtiesIdIn(pageable, name, List.of(specialties));
+            else
+                pageOfSpecialists =
+                        specialistRepository.findAllByNameContainingIgnoreCase(pageable, name);
+
+            List<SpecialistDTO> filteredList =
+                    pageOfSpecialists.getContent().stream()
+                            .map(this::convertToDto)
+                            .collect(Collectors.toList());
+
+            return new PageImpl<>(filteredList, pageable, pageOfSpecialists.getTotalElements());
+        } catch (NoSuchElementException exception) {
+            throw new SpecialistNotFoundException("Não foram encontrados especialistas.", exception.getCause());
         }
     }
 
@@ -124,5 +148,24 @@ public class SpecialistService {
         } catch (IllegalArgumentException exception) {
             throw new SpecialistCreationException("Erro ao salvar especialista.", exception.getCause());
         }
+    }
+
+    public Boolean verifyExistingCpf(String cpf) {
+        return specialistRepository.existsByCpf(cpf);
+    }
+
+    private SpecialistDTO convertToDto(SpecialistModel specialist) {
+        return new SpecialistDTO(
+                specialist.getId(),
+                specialist.getName(),
+                specialist.getSignature(),
+                specialist.getCpf(),
+                specialist.getCro(),
+                specialist.getCroState(),
+                specialist.getCredentials().getEmail(),
+                specialist.getPhones(),
+                specialist.getSpecialties(),
+                specialist.getOfficeDateTime()
+        );
     }
 }
