@@ -1,3 +1,4 @@
+
 package com.dentaltechapi.model.entities.specialist;
 
 import com.dentaltechapi.model.entities.phone.PhoneModel;
@@ -65,6 +66,5 @@ public class SpecialistModel implements Serializable {
             joinColumns = @JoinColumn(name = "specialist_id"),
             inverseJoinColumns = @JoinColumn(name = "office_date_time_id")
     )
-    private Set<OfficeDateTimeModel> officeDateTime;
+    private Set<OfficeDateTimeModel> schedule;
 }
-

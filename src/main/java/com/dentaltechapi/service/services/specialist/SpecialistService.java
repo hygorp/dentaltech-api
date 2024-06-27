@@ -5,9 +5,11 @@ import com.dentaltechapi.model.entities.specialist.SpecialistModel;
 import com.dentaltechapi.model.entities.specialist.dto.SpecialistDTO;
 import com.dentaltechapi.model.entities.specialty.SpecialtyModel;
 import com.dentaltechapi.model.entities.user.UserModel;
+import com.dentaltechapi.model.entities.user.dto.UserDTO;
 import com.dentaltechapi.repository.repositories.specialist.SpecialistRepository;
 import com.dentaltechapi.service.exceptions.specialist.SpecialistCreationException;
 import com.dentaltechapi.service.exceptions.specialist.SpecialistNotFoundException;
+import com.dentaltechapi.service.exceptions.specialist.SpecialistUpdateException;
 import com.dentaltechapi.service.services.officedatetime.OfficeDateTimeService;
 import com.dentaltechapi.service.services.specialty.SpecialtyService;
 import com.dentaltechapi.service.services.user.UserService;
@@ -19,10 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,10 +50,15 @@ public class SpecialistService {
                     specialist.getCpf(),
                     specialist.getCro(),
                     specialist.getCroState(),
-                    specialist.getCredentials().getEmail(),
+                    new UserDTO(
+                            specialist.getCredentials().getId(),
+                            specialist.getCredentials().getUsername(),
+                            specialist.getCredentials().getEmail(),
+                            specialist.getCredentials().getRole()
+                    ),
                     specialist.getPhones(),
                     specialist.getSpecialties(),
-                    specialist.getOfficeDateTime()
+                    specialist.getSchedule()
             ));
         } catch (NoSuchElementException exception) {
             throw new SpecialistNotFoundException("Não foram encontrados especialistas.", exception.getCause());
@@ -63,18 +67,23 @@ public class SpecialistService {
 
     public SpecialistDTO findSpecialistById(Long id) {
         try {
-            SpecialistModel specialistModel = specialistRepository.findById(id).orElseThrow(() -> new SpecialistNotFoundException("Especialista não encontrado."));
+            SpecialistModel specialist = specialistRepository.findById(id).orElseThrow(() -> new SpecialistNotFoundException("Especialista não encontrado."));
             return new SpecialistDTO(
-                    specialistModel.getId(),
-                    specialistModel.getName(),
-                    specialistModel.getSignature(),
-                    specialistModel.getCpf(),
-                    specialistModel.getCro(),
-                    specialistModel.getCroState(),
-                    specialistModel.getCredentials().getEmail(),
-                    specialistModel.getPhones(),
-                    specialistModel.getSpecialties(),
-                    specialistModel.getOfficeDateTime()
+                    specialist.getId(),
+                    specialist.getName(),
+                    specialist.getSignature(),
+                    specialist.getCpf(),
+                    specialist.getCro(),
+                    specialist.getCroState(),
+                    new UserDTO(
+                            specialist.getCredentials().getId(),
+                            specialist.getCredentials().getUsername(),
+                            specialist.getCredentials().getEmail(),
+                            specialist.getCredentials().getRole()
+                    ),
+                    specialist.getPhones(),
+                    specialist.getSpecialties(),
+                    specialist.getSchedule()
             );
         } catch (NoSuchElementException | SpecialistNotFoundException exception) {
             throw new SpecialistNotFoundException("Especialista não encontrado.");
@@ -119,7 +128,7 @@ public class SpecialistService {
             );
 
             Set<OfficeDateTimeModel> persistedOfficeDateTimes = new HashSet<>();
-            for (OfficeDateTimeModel officeDateTime : specialistModel.getOfficeDateTime()) {
+            for (OfficeDateTimeModel officeDateTime : specialistModel.getSchedule()) {
                 OfficeDateTimeModel persistedOfficeDateTime = officeDateTimeService.createNewOfficeDateTime(officeDateTime);
                 persistedOfficeDateTimes.add(persistedOfficeDateTime);
             }
@@ -142,11 +151,72 @@ public class SpecialistService {
             newSpecialist.setCredentials(newUserCredentials);
             newSpecialist.setPhones(specialistModel.getPhones());
             newSpecialist.setSpecialties(persistedSpecialties);
-            newSpecialist.setOfficeDateTime(persistedOfficeDateTimes);
+            newSpecialist.setSchedule(persistedOfficeDateTimes);
 
             specialistRepository.save(newSpecialist);
         } catch (IllegalArgumentException exception) {
             throw new SpecialistCreationException("Erro ao salvar especialista.", exception.getCause());
+        }
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public void updateSpecialist(SpecialistModel specialist) {
+        try {
+            SpecialistModel persistedSpecialist =
+                    specialistRepository.findById(specialist.getId()).orElseThrow(() -> new SpecialistNotFoundException("Especialista não encontrado."));
+
+            if (!specialist.getName().isEmpty() || !specialist.getName().isBlank()) {
+                if (!Objects.equals(specialist.getName(), persistedSpecialist.getName()))
+                    persistedSpecialist.setName(specialist.getName());
+            }
+
+            if (!specialist.getSignature().isEmpty() || !specialist.getSignature().isBlank()) {
+                if (!Objects.equals(specialist.getSignature(), persistedSpecialist.getSignature()))
+                    persistedSpecialist.setSignature(specialist.getSignature());
+            }
+
+            if (!specialist.getCpf().isEmpty() || !specialist.getCpf().isBlank()) {
+                if (!Objects.equals(specialist.getCpf(), persistedSpecialist.getCpf()))
+                    persistedSpecialist.setCpf(specialist.getCpf());
+            }
+
+            if (!specialist.getCro().isEmpty() || !specialist.getCro().isBlank()) {
+                if (!Objects.equals(specialist.getCro(), persistedSpecialist.getCro()))
+                    persistedSpecialist.setCro(specialist.getCro());
+            }
+
+            if (!specialist.getCroState().isEmpty() || !specialist.getCroState().isBlank()) {
+                if (!Objects.equals(specialist.getCroState(), persistedSpecialist.getCroState()))
+                    persistedSpecialist.setCroState(specialist.getCroState());
+            }
+
+            if (specialist.getCredentials().getUsername() != null)
+                if (!specialist.getCredentials().getUsername().isEmpty() || !specialist.getCredentials().getUsername().isBlank()) {
+                    if (!Objects.equals(specialist.getCredentials().getUsername(), persistedSpecialist.getCredentials().getUsername()))
+                        persistedSpecialist.getCredentials().setUsername(specialist.getCredentials().getUsername());
+                }
+
+            if (specialist.getCredentials().getPassword() != null)
+                if (!specialist.getCredentials().getPassword().isEmpty() || !specialist.getCredentials().getPassword().isBlank()) {
+                    if (!Objects.equals(specialist.getCredentials().getPassword(), persistedSpecialist.getCredentials().getPassword()))
+                        persistedSpecialist.getCredentials().setPassword(specialist.getCredentials().getPassword());
+                }
+
+            if (!specialist.getPhones().isEmpty()) {
+                persistedSpecialist.setPhones(specialist.getPhones());
+            }
+
+            if (!specialist.getSpecialties().isEmpty()) {
+                persistedSpecialist.setSpecialties(specialist.getSpecialties());
+            }
+
+            if (!specialist.getSchedule().isEmpty()) {
+                persistedSpecialist.setSchedule(specialist.getSchedule());
+            }
+
+            specialistRepository.save(persistedSpecialist);
+        } catch (SpecialistUpdateException exception) {
+            throw new SpecialistUpdateException("Erro ao atualizar especialista.");
         }
     }
 
@@ -162,10 +232,15 @@ public class SpecialistService {
                 specialist.getCpf(),
                 specialist.getCro(),
                 specialist.getCroState(),
-                specialist.getCredentials().getEmail(),
+                new UserDTO(
+                        specialist.getCredentials().getId(),
+                        specialist.getCredentials().getUsername(),
+                        specialist.getCredentials().getEmail(),
+                        specialist.getCredentials().getRole()
+                ),
                 specialist.getPhones(),
                 specialist.getSpecialties(),
-                specialist.getOfficeDateTime()
+                specialist.getSchedule()
         );
     }
 }

@@ -4,9 +4,12 @@ import com.dentaltechapi.model.entities.specialist.SpecialistModel;
 import com.dentaltechapi.model.entities.specialist.dto.SpecialistDTO;
 import com.dentaltechapi.service.exceptions.specialist.SpecialistCreationException;
 import com.dentaltechapi.service.exceptions.specialist.SpecialistNotFoundException;
+import com.dentaltechapi.service.exceptions.specialist.SpecialistUpdateException;
 import com.dentaltechapi.service.services.specialist.SpecialistService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +25,9 @@ public class SpecialistResource {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Page<SpecialistDTO>> findAllSpecialists(Pageable pageable) {
+    public ResponseEntity<Page<SpecialistDTO>> findAllSpecialists(
+            @SortDefault(sort = "id", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
         try {
             Page<SpecialistDTO> specialistsPage = specialistService.findAllSpecialists(pageable);
             return ResponseEntity.ok().body(specialistsPage);
@@ -42,10 +47,10 @@ public class SpecialistResource {
 
     @GetMapping("/filter-specialists")
     public ResponseEntity<Page<SpecialistDTO>> filterSpecialistsByNameAndSpecialty(
-            Pageable pageable,
+            @SortDefault(sort = "id", direction = Sort.Direction.ASC) Pageable pageable,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "specialties", required = false) Long[] specialties
-            ) {
+    ) {
         try {
             Page<SpecialistDTO> specialistsPage = specialistService.filterSpecialistsByNameAndSpecialty(pageable, name, specialties);
             return ResponseEntity.ok().body(specialistsPage);
@@ -60,6 +65,16 @@ public class SpecialistResource {
             specialistService.createNewSpecialist(specialistModel);
             return ResponseEntity.status(HttpStatus.CREATED).build();
         } catch (SpecialistCreationException exception) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<HttpStatus> updateSpecialist(@RequestBody SpecialistModel specialistModel) {
+        try {
+            specialistService.updateSpecialist(specialistModel);
+            return ResponseEntity.ok().build();
+        } catch (SpecialistUpdateException exception) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

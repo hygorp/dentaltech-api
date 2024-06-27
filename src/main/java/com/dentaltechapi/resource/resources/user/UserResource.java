@@ -75,7 +75,7 @@ public class UserResource {
                     new SessionModel(
                             true,
                             Instant.now(),
-                            Instant.now().plusSeconds(7200L),
+                            Instant.now().plusSeconds(28800L),
                             token,
                             authenticatedUser
                     )

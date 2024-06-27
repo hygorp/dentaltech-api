@@ -5,6 +5,7 @@ import com.dentaltechapi.repository.repositories.user.UserRepository;
 import com.dentaltechapi.service.exceptions.user.UserCreationException;
 import com.dentaltechapi.service.exceptions.user.UserNotFoundException;
 import com.dentaltechapi.service.exceptions.user.UserUpdateException;
+import org.apache.catalina.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,14 @@ public class UserService {
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    public UserModel findById(Long id) {
+        try {
+            return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
+        } catch (NoSuchElementException exception) {
+            throw new UserNotFoundException("Usuário não encontrado.");
+        }
     }
 
     public UserModel findByUserUsername(String username) {
@@ -34,6 +43,14 @@ public class UserService {
         }
     }
 
+    public UserModel updateUser(UserModel userModel) {
+        try {
+            return userRepository.save(userModel);
+        } catch (IllegalArgumentException exception) {
+            throw new UserUpdateException("Erro ao atualizar usuário.", exception.getCause());
+        }
+    }
+
     public String updateUserPassword(Long id, String password) {
         try {
             UserModel persistedUser = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("usuário não encontrado."));
@@ -43,7 +60,7 @@ public class UserService {
 
             return persistedUser.getEmail();
         } catch (UserNotFoundException | IllegalArgumentException exception) {
-            throw new UserUpdateException("Erro ao atualizar usuário.", exception.getCause());
+            throw new UserUpdateException("Erro ao atualizar senha do usuário.", exception.getCause());
         }
     }
 
