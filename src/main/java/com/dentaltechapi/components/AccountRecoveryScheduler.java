@@ -1,7 +1,7 @@
 package com.dentaltechapi.components;
 
 import com.dentaltechapi.model.entities.user.accountrecovery.AccountRecoveryModel;
-import com.dentaltechapi.service.services.user.accountrecovery.AccountRecoveryService;
+import com.dentaltechapi.services.services.user.accountrecovery.AccountRecoveryService;
 import jakarta.transaction.Transactional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

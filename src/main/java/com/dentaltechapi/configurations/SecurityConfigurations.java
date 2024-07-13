@@ -31,43 +31,46 @@ public class SecurityConfigurations {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "api/user/login").permitAll()
+                        .requestMatchers(HttpMethod.POST,    "api/user/login").permitAll()
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/logout").authenticated()
-                        .requestMatchers(HttpMethod.POST, "api/user/logout").authenticated()
+                        .requestMatchers(HttpMethod.POST,    "api/user/logout").authenticated()
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/init-reset-password").permitAll()
-                        .requestMatchers(HttpMethod.POST, "api/user/init-reset-password").permitAll()
+                        .requestMatchers(HttpMethod.POST,    "api/user/init-reset-password").permitAll()
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/new-password").permitAll()
-                        .requestMatchers(HttpMethod.POST, "api/user/new-password").permitAll()
+                        .requestMatchers(HttpMethod.POST,    "api/user/new-password").permitAll()
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, "api/user/register").permitAll()
+                        .requestMatchers(HttpMethod.POST,    "api/user/register").permitAll()
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/token/validate-token").permitAll()
-                        .requestMatchers(HttpMethod.GET, "api/token/validate-token").permitAll()
+                        .requestMatchers(HttpMethod.GET,     "api/token/validate-token").permitAll()
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/specialists/all").authenticated()
-                        .requestMatchers(HttpMethod.GET, "api/specialists/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,     "api/specialists/**").authenticated()
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/specialists/new").hasRole("admin")
-                        .requestMatchers(HttpMethod.POST, "api/specialists/new").hasRole("admin")
+                        .requestMatchers(HttpMethod.POST,    "api/specialists/new").hasRole("admin")
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/specialist/filter-specialists").authenticated()
-                        .requestMatchers(HttpMethod.GET, "api/specialist/filter-specialists").authenticated()
+                        .requestMatchers(HttpMethod.GET,     "api/specialist/filter-specialists").authenticated()
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/specialist/verify-existing-cpf/").authenticated()
-                        .requestMatchers(HttpMethod.GET, "api/specialist/verify-existing-cpf/").authenticated()
+                        .requestMatchers(HttpMethod.GET,     "api/specialist/verify-existing-cpf/").authenticated()
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/verify-existing-username").authenticated()
-                        .requestMatchers(HttpMethod.GET, "api/user/verify-existing-username").authenticated()
+                        .requestMatchers(HttpMethod.GET,     "api/user/verify-existing-username").authenticated()
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/verify-existing-email").authenticated()
-                        .requestMatchers(HttpMethod.GET, "api/user/verify-existing-email").authenticated()
+                        .requestMatchers(HttpMethod.GET,     "api/user/verify-existing-email").authenticated()
 
-                        .requestMatchers(HttpMethod.OPTIONS, "api/specialty/all").authenticated()
-                        .requestMatchers(HttpMethod.GET, "api/specialty/all").authenticated()
+                        .requestMatchers(HttpMethod.OPTIONS, "api/specialty/**").authenticated()
+                        .requestMatchers(HttpMethod.GET,     "api/specialty/**").authenticated()
+                        .requestMatchers(HttpMethod.POST,    "api/specialty/create").authenticated()
+                        .requestMatchers(HttpMethod.PUT,     "api/specialty/update").authenticated()
+                        .requestMatchers(HttpMethod.DELETE,  "api/specialty/delete-by-id/").authenticated()
 
                         .anyRequest().permitAll()
                 )

@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: dentaltech-api
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/dentaltech-db
+    username: hygorp
+    password: 123456
+  rabbitmq:
+    host: rabbitmq
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+server:
+  port: 8080

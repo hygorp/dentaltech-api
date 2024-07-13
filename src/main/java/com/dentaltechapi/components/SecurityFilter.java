@@ -1,8 +1,8 @@
 package com.dentaltechapi.components;
 
 import com.dentaltechapi.components.exceptions.SecurityFilterComponentException;
-import com.dentaltechapi.service.services.token.TokenService;
-import com.dentaltechapi.service.services.user.UserService;
+import com.dentaltechapi.services.services.token.TokenService;
+import com.dentaltechapi.services.services.user.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

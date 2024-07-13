@@ -1,7 +1,7 @@
 package com.dentaltechapi.components;
 
 import com.dentaltechapi.model.entities.user.session.SessionModel;
-import com.dentaltechapi.service.services.user.session.SessionService;
+import com.dentaltechapi.services.services.user.session.SessionService;
 import jakarta.transaction.Transactional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

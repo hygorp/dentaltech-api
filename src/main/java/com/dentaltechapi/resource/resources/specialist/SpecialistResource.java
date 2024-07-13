@@ -2,10 +2,10 @@ package com.dentaltechapi.resource.resources.specialist;
 
 import com.dentaltechapi.model.entities.specialist.SpecialistModel;
 import com.dentaltechapi.model.entities.specialist.dto.SpecialistDTO;
-import com.dentaltechapi.service.exceptions.specialist.SpecialistCreationException;
-import com.dentaltechapi.service.exceptions.specialist.SpecialistNotFoundException;
-import com.dentaltechapi.service.exceptions.specialist.SpecialistUpdateException;
-import com.dentaltechapi.service.services.specialist.SpecialistService;
+import com.dentaltechapi.services.exceptions.specialist.SpecialistCreationException;
+import com.dentaltechapi.services.exceptions.specialist.SpecialistNotFoundException;
+import com.dentaltechapi.services.exceptions.specialist.SpecialistUpdateException;
+import com.dentaltechapi.services.services.specialist.SpecialistService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
