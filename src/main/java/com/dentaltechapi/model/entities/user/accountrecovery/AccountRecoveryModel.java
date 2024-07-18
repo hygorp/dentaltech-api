@@ -4,6 +4,7 @@ import com.dentaltechapi.model.entities.user.UserModel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serial;
@@ -15,6 +16,7 @@ import java.util.Random;
 @Entity(name = "tb_account_recovery")
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "code")
 public class AccountRecoveryModel implements Serializable {
 
     @Serial

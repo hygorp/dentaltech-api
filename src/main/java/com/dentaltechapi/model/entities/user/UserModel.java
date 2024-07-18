@@ -4,7 +4,9 @@ package com.dentaltechapi.model.entities.user;
 import com.dentaltechapi.model.entities.user.accountrecovery.AccountRecoveryModel;
 import com.dentaltechapi.model.entities.user.session.SessionModel;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +18,7 @@ import java.util.*;
 @Data
 @Entity(name = "tb_user")
 @NoArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class UserModel implements Serializable, UserDetails {
 
     @Serial
@@ -61,6 +64,11 @@ public class UserModel implements Serializable, UserDetails {
         } else {
             return List.of(new SimpleGrantedAuthority("ROLE_USER"));
         }
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
     }
 
     @Override

@@ -28,6 +28,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/user")
@@ -55,7 +56,7 @@ public class UserResource {
         this.emailService = emailService;
     }
 
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody UserLoginCredentialsDTO userCredentials) {
         try {
             if (!userService.verifyExistingUser(userCredentials.username()))
@@ -97,13 +98,13 @@ public class UserResource {
         }
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestBody UserLogoutCredentialsDTO user) {
+    @PostMapping("/auth/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Username") String username, @RequestHeader("Session") String sessionId) {
         try {
-            if (!sessionService.verifyExistingSession(user.username()))
+            if (!sessionService.verifyExistingSession(username))
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
-            sessionService.invalidateSession(user.sessionId());
+            sessionService.invalidateSession(UUID.fromString(sessionId));
 
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 

@@ -30,8 +30,8 @@ public class TokenResource {
         this.sessionService = sessionService;
     }
 
-    @GetMapping("/validate-token")
-    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token, @RequestHeader("Session") UUID session) {
+    @GetMapping("/validation")
+    public ResponseEntity<?> validation(@RequestHeader("Authorization") String token, @RequestHeader("Session") UUID session) {
         try {
             String username = tokenService.validateToken(token.replace("Bearer ", ""));
             UserModel authenticatedUser = userService.findByUserUsername(username);

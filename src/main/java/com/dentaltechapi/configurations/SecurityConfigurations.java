@@ -30,11 +30,11 @@ public class SecurityConfigurations {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.OPTIONS, "api/user/login").permitAll()
-                        .requestMatchers(HttpMethod.POST,    "api/user/login").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "api/user/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST,    "api/user/auth/login").permitAll()
 
-                        .requestMatchers(HttpMethod.OPTIONS, "api/user/logout").authenticated()
-                        .requestMatchers(HttpMethod.POST,    "api/user/logout").authenticated()
+                        .requestMatchers(HttpMethod.OPTIONS, "api/user/auth/logout").authenticated()
+                        .requestMatchers(HttpMethod.POST,    "api/user/auth/logout").authenticated()
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/init-reset-password").permitAll()
                         .requestMatchers(HttpMethod.POST,    "api/user/init-reset-password").permitAll()
@@ -45,14 +45,14 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.OPTIONS, "api/user/register").permitAll()
                         .requestMatchers(HttpMethod.POST,    "api/user/register").permitAll()
 
-                        .requestMatchers(HttpMethod.OPTIONS, "api/token/validate-token").permitAll()
-                        .requestMatchers(HttpMethod.GET,     "api/token/validate-token").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "api/token/validation").permitAll()
+                        .requestMatchers(HttpMethod.GET,     "api/token/validation").permitAll()
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/specialists/all").authenticated()
                         .requestMatchers(HttpMethod.GET,     "api/specialists/**").authenticated()
 
-                        .requestMatchers(HttpMethod.OPTIONS, "api/specialists/new").hasRole("admin")
-                        .requestMatchers(HttpMethod.POST,    "api/specialists/new").hasRole("admin")
+                        .requestMatchers(HttpMethod.OPTIONS, "api/specialists/new").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST,    "api/specialists/new").hasAuthority("ROLE_ADMIN")
 
                         .requestMatchers(HttpMethod.OPTIONS, "api/specialist/filter-specialists").authenticated()
                         .requestMatchers(HttpMethod.GET,     "api/specialist/filter-specialists").authenticated()
@@ -70,9 +70,9 @@ public class SecurityConfigurations {
                         .requestMatchers(HttpMethod.GET,     "api/specialty/**").authenticated()
                         .requestMatchers(HttpMethod.POST,    "api/specialty/create").authenticated()
                         .requestMatchers(HttpMethod.PUT,     "api/specialty/update").authenticated()
-                        .requestMatchers(HttpMethod.DELETE,  "api/specialty/delete-by-id/").authenticated()
+                        .requestMatchers(HttpMethod.DELETE,  "api/specialty/delete-by-id/").hasAuthority("ROLE_ADMIN")
 
-                        .anyRequest().permitAll()
+                        .anyRequest().hasAuthority("ROLE_ADMIN")
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

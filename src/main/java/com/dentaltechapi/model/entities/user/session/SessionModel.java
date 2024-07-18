@@ -4,6 +4,7 @@ import com.dentaltechapi.model.entities.user.UserModel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serial;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Entity(name = "tb_session")
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class SessionModel implements Serializable {
 
     @Serial
